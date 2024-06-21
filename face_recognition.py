@@ -2,7 +2,7 @@ import cv2
 from deepface import DeepFace
 
 # Load the reference image for face verification
-reference_img = cv2.imread("image1.jpg")
+reference_img = cv2.imread("image7.jpg")
 
 def check_face(frame):
     try:
