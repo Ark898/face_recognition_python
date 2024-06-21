@@ -1,58 +1,52 @@
-"""Module providing a function printing python version."""
-
-import threading
-
-from cv2 import cv2
-     
-
-
+import cv2
 from deepface import DeepFace
 
+# Load the reference image for face verification
+reference_img = cv2.imread("image1.jpg")
 
+def check_face(frame):
+    try:
+        result = DeepFace.verify(frame, reference_img, enforce_detection=False)
+        if result['verified']:
+            return True
+        else:
+            return False
+    except Exception as e:
+        print(f"Error: {e}")
+        return False
 
-cap = cv2.VideoCapture(0,cv2.cap_dshow)
+# Initialize video capture from the default camera (laptop's camera)
+cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+if not cap.isOpened():
+    print("Error: Could not open camera.")
+    exit()
 
+# Set camera resolution (optional)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
-counter = 0
-
-face_match = False
-
-refernce_img =  cv2.imread("image7.jpg")
-
-def check_face(frame):
-    global face_match
-    try:
-        if DeepFace.verify(frame, image7_img.copy())['verified']:
-            face_match = True
-        else:
-            face_match = False
-            
-    except ValueError:
-        face_match = False
-    
-    
 while True:
+    # Capture frame-by-frame
     ret, frame = cap.read()
+    if not ret:
+        print("Error: Failed to capture frame.")
+        break
     
-    if ret:
-        if counter % 30 ==0:
-            try:
-                threading.Thread(target=check_face, args=(frame.copy(),)).start()
-            except ValueError:
-                pass
-        counter += 1
-        
-        if face_match:
-            cv2.putText(frame, "MATCH!", (20,450), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 3) 
-        else:
-            cv2.putText(frame, "NO MATCH!", (20,450), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)  
-            
-        cv2.imshow("video", frame)
-        
-        key = cv2.waitKey(1)
-        if key == ord("q"):
-            break
-        
-cv2.destroyAllwindows()
+    # Perform face verification
+    match = check_face(frame)
+
+    # Display the frame with match result
+    if match:
+        cv2.putText(frame, "MATCH!", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+    else:
+        cv2.putText(frame, "NO MATCH!", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+    
+    cv2.imshow('Face Verification', frame)
+
+    # Exit the loop if 'q' is pressed
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# Release the capture and close all windows
+cap.release()
+cv2.destroyAllWindows()
